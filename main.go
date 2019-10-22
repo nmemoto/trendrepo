@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -11,13 +12,21 @@ import (
 	"strconv"
 	"strings"
 
-	"golang.org/x/net/html"
+	"github.com/antchfx/htmlquery"
 )
 
 const githubURL = "https://github.com"
 
 func main() {
-	url := githubURL + "/trending/go?since=today"
+
+	var language, period string
+	flag.StringVar(&language, "l", "", "Programming Language")
+	flag.StringVar(&period, "p", "today", "Date Range")
+
+	flag.Parse()
+
+	baseURL := githubURL + "/trending/"
+	url := baseURL + language + "?since=" + period
 	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatal(err)
@@ -40,55 +49,85 @@ func main() {
 
 func ParseRepos(r io.Reader) []Repository {
 	repos := []Repository{}
-	doc, err := html.Parse(r)
+	doc, err := htmlquery.Parse(r)
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	var repo Repository
-	var f func(*html.Node)
-	f = func(n *html.Node) {
-		if n.Type == html.ElementNode && n.Data == "article" {
-			h1 := n.FirstChild.NextSibling.NextSibling.NextSibling
-			aName := h1.FirstChild.NextSibling
-			for _, a := range aName.Attr {
-				if a.Key == "href" {
-					repo.Href = githubURL + a.Val
-					repoName := strings.Split(a.Val, "/")
-					repo.Author = repoName[1]
-					repo.Name = repoName[2]
+	list := htmlquery.Find(doc, "//article")
+	for _, n := range list {
+		// Href, Author, Name
+		hrefPath := htmlquery.SelectAttr(htmlquery.FindOne(n, "/h1/a"), "href")
+		repo.Href = githubURL + hrefPath
+		repoName := strings.Split(hrefPath, "/")
+		repo.Author = repoName[1]
+		repo.Name = repoName[2]
+
+		// Description
+		descNode, err := htmlquery.QueryAll(n, "/p")
+		if err != nil {
+			repo.Description = ""
+		} else {
+			for _, n := range descNode {
+				repo.Description = strings.TrimSpace(htmlquery.InnerText(n))
+			}
+		}
+
+		// Language
+		langNode, err := htmlquery.QueryAll(n, "/div[2]/span[1]/span[2]")
+		if err != nil {
+			repo.Language = ""
+		} else {
+			for _, n := range langNode {
+				repo.Language = htmlquery.InnerText(n)
+			}
+		}
+
+		// Stars
+		starsNode, err := htmlquery.QueryAll(n, "/div[2]/a[1]")
+		if err != nil {
+			repo.Stars = 0
+		} else {
+			for _, n := range starsNode {
+				repo.Stars, err = strconv.Atoi(strings.TrimSpace(strings.Replace(htmlquery.InnerText(n), ",", "", -1)))
+				if err != nil {
+					log.Fatal(err)
 				}
 			}
-			pDesc := h1.NextSibling.NextSibling
-			repo.Description = strings.TrimSpace(pDesc.FirstChild.Data)
-			spanLang := pDesc.NextSibling.NextSibling.FirstChild.NextSibling
-			repo.Language = spanLang.FirstChild.NextSibling.NextSibling.NextSibling.FirstChild.Data
-			aStars := spanLang.NextSibling.NextSibling
-			repo.Stars, err = strconv.Atoi(strings.TrimSpace(strings.Replace(aStars.FirstChild.NextSibling.NextSibling.Data, ",", "", -1)))
-			if err != nil {
-				log.Fatal(err)
-			}
-			aForks := aStars.NextSibling.NextSibling
-			repo.Forks, err = strconv.Atoi(strings.TrimSpace(strings.Replace(aForks.FirstChild.NextSibling.NextSibling.Data, ",", "", -1)))
-			if err != nil {
-				log.Fatal(err)
-			}
-			spanStarsInPeriod := aForks.NextSibling.NextSibling.NextSibling.NextSibling
-			starsInPeriodStr := spanStarsInPeriod.FirstChild.NextSibling.NextSibling.Data
-			r := regexp.MustCompile(`\d+`)
-			starsInPeriod := r.FindAllString(starsInPeriodStr, -1)
-			repo.StarsInPeriod, err = strconv.Atoi(starsInPeriod[0])
-			if err != nil {
-				log.Fatal(err)
-			}
-			repos = append(repos, repo)
+		}
 
+		// Forks
+		forksNode, err := htmlquery.QueryAll(n, "/div[2]/a[2]")
+		if err != nil {
+			repo.Forks = 0
+		} else {
+			for _, n := range forksNode {
+				repo.Forks, err = strconv.Atoi(strings.TrimSpace(strings.Replace(htmlquery.InnerText(n), ",", "", -1)))
+				if err != nil {
+					log.Fatal(err)
+				}
+			}
 		}
-		for c := n.FirstChild; c != nil; c = c.NextSibling {
-			f(c)
+
+		// StarsInPeriod
+		starsInPeriodNode, err := htmlquery.QueryAll(n, "/div[2]/span[3]")
+		if err != nil {
+			repo.StarsInPeriod = 0
+		} else {
+			for _, n := range starsInPeriodNode {
+				r := regexp.MustCompile(`\d+`)
+				starsInPeriod := r.FindAllString(htmlquery.InnerText(n), -1)
+				repo.StarsInPeriod, err = strconv.Atoi(starsInPeriod[0])
+				if err != nil {
+					log.Fatal(err)
+				}
+
+			}
 		}
+
+		repos = append(repos, repo)
 	}
-	f(doc)
 	return repos
 }
 
