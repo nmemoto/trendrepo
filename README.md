@@ -47,6 +47,9 @@ apachecn/AiLearning                     Python     20520 7250  85              h
 ```
 $ trendrepo -h
 Usage of trendrepo:
+  -b    Open Repository Web Page
+  -browser
+        Open Repository Web Page
   -f string
         List Format: text or json (default "text")
   -format string
