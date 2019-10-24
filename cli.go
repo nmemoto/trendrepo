@@ -43,8 +43,8 @@ func (cli *CLI) Run(args []string) int {
 	flags.StringVar(&language, "lang", "", "Programming Language: go, typescript, ruby, .... anything is ok!")
 	flags.StringVar(&period, "p", "today", "Date Range: today, weekly or monthly")
 	flags.StringVar(&period, "period", "today", "Date Range: today, weekly or monthly")
-	flags.StringVar(&format, "f", "json", "List Format: json or text")
-	flags.StringVar(&format, "format", "json", "List Format: json or text")
+	flags.StringVar(&format, "f", "text", "List Format: text or json")
+	flags.StringVar(&format, "format", "text", "List Format: text or json")
 
 	if err := flags.Parse(args[1:]); err != nil {
 		return ExitCodeParseFlagsError
@@ -65,24 +65,22 @@ func (cli *CLI) Run(args []string) int {
 		return ExitCodeParseHtmlError
 	}
 
-	if format == "text" {
+	if format == "json" {
+		jsonBytes, err := json.Marshal(repos)
+		if err != nil {
+			fmt.Fprintf(cli.errStream, "JSON Marshal error: %v", err)
+			return ExitCodeJsonMarshalError
+		}
+		var buf bytes.Buffer
+		json.Indent(&buf, jsonBytes, "", "    ")
+		fmt.Fprintln(cli.outStream, buf.String())
+	} else {
 		w := tabwriter.NewWriter(cli.outStream, 0, 1, 1, ' ', tabwriter.DiscardEmptyColumns)
 		w.Write([]byte(ListHeader() + "\n"))
 		for _, r := range repos {
 			w.Write([]byte(r.String() + "\n"))
 		}
 		w.Flush()
-	} else {
-		jsonBytes, err := json.Marshal(repos)
-		if err != nil {
-			fmt.Fprintf(cli.errStream, "JSON Marshal error: %v", err)
-			return ExitCodeJsonMarshalError
-		}
-
-		var buf bytes.Buffer
-		json.Indent(&buf, jsonBytes, "", "    ")
-		fmt.Fprintln(cli.outStream, buf.String())
-
 	}
 	return ExitCodeOK
 }
