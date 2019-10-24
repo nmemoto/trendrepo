@@ -35,13 +35,13 @@ func (cli *CLI) Run(args []string) int {
 
 	var language, period string
 
-	flags := flag.NewFlagSet("trendrepo", flag.ContinueOnError)
+	flags := flag.NewFlagSet("trendrepo", flag.ExitOnError)
 	flags.SetOutput(cli.errStream)
 
-	flags.StringVar(&language, "l", "", "Programming Language")
-	flags.StringVar(&language, "lang", "", "Programming Language")
-	flags.StringVar(&period, "p", "today", "Date Range")
-	flags.StringVar(&period, "period", "today", "Date Range")
+	flags.StringVar(&language, "l", "", "Programming Language: go, typescript, ruby, .... anything is ok!")
+	flags.StringVar(&language, "lang", "", "Programming Language: go, typescript, ruby, .... anything is ok!")
+	flags.StringVar(&period, "p", "today", "Date Range: today, weekly or monthly")
+	flags.StringVar(&period, "period", "today", "Date Range: today, weekly or monthly")
 
 	if err := flags.Parse(args[1:]); err != nil {
 		return ExitCodeParseFlagsError

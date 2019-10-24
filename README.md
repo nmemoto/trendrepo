@@ -1,21 +1,19 @@
 # trendrepo
 
-Github Trending CLI (https://github.com/trending)
+Github Trending (https://github.com/trending) CLI
 
 ## How To Use
 
-### Build
+### Get
 
 ```
-$ git clone git@github.com:nmemoto/trendrepo.git
-$ cd trendrepo
-$ go build
+$ go get github.com/nmemoto/trendrepo
 ```
 
 ### Run
 
 ```
-$ ./trendrepo
+$ trendrepo
 [
     {
         "author": "tinacms",
@@ -64,20 +62,24 @@ $ ./trendrepo
 ### Option
 
 ```
-$ ./trendrepo
-Usage of ./trendrepo:
+$ trendrepo -h
+Usage of trendrepo:
   -l string
-        Programming Language
+        Programming Language: go, typescript, ruby, .... anything is ok!
+  -lang string
+        Programming Language: go, typescript, ruby, .... anything is ok!
   -p string
-        Date Range (default "today")
+        Date Range: today, weekly or monthly (default "today")
+  -period string
+        Date Range: today, weekly or monthly (default "today")
 ```
 
 ### example
 
 ```
-$ ./trendrepo -l go
+$ trendrepo -l go
 ```
 
 ```
-$ ./trendrepo -l go -p week
+$ trendrepo -l go -p weekly
 ```
