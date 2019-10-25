@@ -1,4 +1,4 @@
-module trendrepo
+module github.com/nmemoto/trendrepo
 
 go 1.13
 
