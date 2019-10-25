@@ -47,9 +47,9 @@ apachecn/AiLearning                     Python     20520 7250  85              h
 ```
 $ trendrepo -h
 Usage of trendrepo:
-  -b    Open Repository Web Page
+  -b    Select a trend repository and open its Github page (Install peco[https://github.com/peco/peco])
   -browser
-        Open Repository Web Page
+        Select a trend repository and open its Github page (Install peco[https://github.com/peco/peco])
   -f string
         List Format: text or json (default "text")
   -format string
