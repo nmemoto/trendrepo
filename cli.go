@@ -88,6 +88,10 @@ func (cli *CLI) Run(args []string) int {
 			fmt.Fprintf(cli.errStream, "Peco Command error: %v\n", err)
 			return ExitCodeError
 		}
+		if buf.Len() == 0 {
+			fmt.Fprintln(cli.errStream, "No files selected")
+			return ExitCodeError
+		}
 		url := strings.Fields(buf.String())[5]
 		if strings.Contains(ListHeader(), url) {
 			fmt.Fprintln(cli.errStream, "Select error: You must choose a repository")

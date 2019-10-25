@@ -97,7 +97,7 @@ cayleygraph/cayley                        Go   12926 1170  42              https
 ```
 
 ```
-$ trendrepo -f text
+$ trendrepo -f json
 [
     {
         "author": "T-head-Semi",
