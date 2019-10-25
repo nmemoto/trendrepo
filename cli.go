@@ -48,8 +48,8 @@ func (cli *CLI) Run(args []string) int {
 	flags.StringVar(&period, "period", "today", "Date Range: today, weekly or monthly")
 	flags.StringVar(&format, "f", "text", "List Format: text or json")
 	flags.StringVar(&format, "format", "text", "List Format: text or json")
-	flags.BoolVar(&browse, "b", false, "Open Repository Web Page")
-	flags.BoolVar(&browse, "browser", false, "Open Repository Web Page")
+	flags.BoolVar(&browse, "b", false, "Select a trend repository and open its Github page (Install peco[https://github.com/peco/peco])")
+	flags.BoolVar(&browse, "browser", false, "Select a trend repository and open its Github page (Install peco[https://github.com/peco/peco])")
 
 	if err := flags.Parse(args[1:]); err != nil {
 		return ExitCodeParseFlagsError
@@ -74,7 +74,7 @@ func (cli *CLI) Run(args []string) int {
 	if browse {
 		var tab bytes.Buffer
 		w := tabwriter.NewWriter(&tab, 0, 1, 1, ' ', tabwriter.DiscardEmptyColumns)
-		w.Write([]byte(ListHeader() + "\n"))
+		w.Write([]byte(Header() + "\n"))
 		for _, r := range repos {
 			w.Write([]byte(r.String() + "\n"))
 		}
@@ -93,7 +93,7 @@ func (cli *CLI) Run(args []string) int {
 			return ExitCodeError
 		}
 		url := strings.Fields(buf.String())[5]
-		if strings.Contains(ListHeader(), url) {
+		if strings.Contains(Header(), url) {
 			fmt.Fprintln(cli.errStream, "Select error: You must choose a repository")
 			return ExitCodeError
 		}
@@ -110,7 +110,7 @@ func (cli *CLI) Run(args []string) int {
 			fmt.Fprintln(cli.outStream, buf.String())
 		} else {
 			w := tabwriter.NewWriter(cli.outStream, 0, 1, 1, ' ', tabwriter.DiscardEmptyColumns)
-			w.Write([]byte(ListHeader() + "\n"))
+			w.Write([]byte(Header() + "\n"))
 			for _, r := range repos {
 				w.Write([]byte(r.String() + "\n"))
 			}
@@ -214,8 +214,8 @@ type Repository struct {
 	StarsInPeriod int    `json:"starsInPeriod"`
 }
 
-func ListHeader() string {
-	return fmt.Sprintf("%v\t%v\t%v\t%v\t%v\t%v\t%v", "REPO NAME", "LANG", "STARS", "FORKS", "STARS IN PERIOD", "HREF", "DESC")
+func Header() string {
+	return fmt.Sprintf("%v\t%v\t%v\t%v\t%v\t%v\t%v", "REPOSITORY", "LANG", "STARS", "FORKS", "STARSINPERIOD", "HREF", "DESC")
 }
 
 func (r Repository) String() string {
