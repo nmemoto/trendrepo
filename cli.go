@@ -89,12 +89,12 @@ func (cli *CLI) Run(args []string) int {
 			return ExitCodeError
 		}
 		if buf.Len() == 0 {
-			fmt.Fprintln(cli.errStream, "No files selected")
+			fmt.Fprintln(cli.errStream, "No repos selected")
 			return ExitCodeError
 		}
 		url := strings.Fields(buf.String())[5]
 		if strings.Contains(Header(), url) {
-			fmt.Fprintln(cli.errStream, "Select error: You must choose a repository")
+			fmt.Fprintln(cli.errStream, "No repos selected")
 			return ExitCodeError
 		}
 		browser.OpenURL(url)
@@ -102,7 +102,7 @@ func (cli *CLI) Run(args []string) int {
 		if format == "json" {
 			jsonBytes, err := json.Marshal(repos)
 			if err != nil {
-				fmt.Fprintf(cli.errStream, "JSON Marshal error: %v", err)
+				fmt.Fprintf(cli.errStream, "JSON Marshal error: %v\n", err)
 				return ExitCodeJsonMarshalError
 			}
 
